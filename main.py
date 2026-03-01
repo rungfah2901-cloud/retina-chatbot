@@ -12,13 +12,14 @@ from google.oauth2.service_account import Credentials
 from datetime import datetime
 import json
 
+# 1. โหลดค่าคอนฟิกต่างๆ
 load_dotenv()
 
 app = FastAPI()
 line_bot_api = LineBotApi(os.getenv("LINE_CHANNEL_ACCESS_TOKEN"))
 handler = WebhookHandler(os.getenv("LINE_CHANNEL_SECRET"))
 
-# --- 1. ตั้งค่า Google Sheets ---
+# 2. เชื่อมต่อ Google Sheets
 scopes = ["https://www.googleapis.com/auth/spreadsheets"]
 google_json_str = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
 
@@ -27,12 +28,12 @@ try:
         service_account_info = json.loads(google_json_str)
         creds = Credentials.from_service_account_info(service_account_info, scopes=scopes)
         client = gspread.authorize(creds)
-        # ใช้ ID ของไฟล์เดิมที่คุณพยาบาลสร้างไว้
+        # ใช้ ID ไฟล์ของคุณพยาบาล
         sheet = client.open_by_key("1joOjhQSn4sGtRkF9-9dwvEvmtC1On24JEyrJHK6mXs").sheet1
 except Exception as e:
-    print(f"❌ Connection Error: {e}")
+    print(f"❌ เชื่อมต่อ Sheets ไม่สำเร็จ: {e}")
 
-# --- 2. คลังข้อมูล FAQ ---
+# 3. คลังคำตอบ FAQ
 faq = {
     "ฉีดยา": "การฉีดยาเข้าน้ำวุ้นตา ใช้เวลาประมาณ 30-60 นาทีค่ะ ไม่เจ็บมากเพราะมีการหยอดยาชาก่อนค่ะ",
     "เตรียมตัว": "ก่อนฉีดยา: อาบน้ำสระผมให้เรียบร้อย ไม่แต่งหน้า ไม่ใส่คอนแทคเลนส์ และพาญาติมาด้วยได้ค่ะ",
@@ -54,13 +55,13 @@ async def webhook(request: Request):
         raise HTTPException(status_code=400)
     return "OK"
 
-# --- 3. ส่วนรับข้อความ (จดชื่อ + แสดงเมนูนัด) ---
+# 4. ส่วนจัดการข้อความ (จดชื่อ และ แสดงปุ่มนัด)
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_id = event.source.user_id
     user_message = event.message.text.strip()
 
-    # กรณีคลิกปุ่ม "ลงนัดฉีดยา" (ปุ่มที่ 6 ใน Rich Menu)
+    # ถ้ากดปุ่ม "ลงนัดฉีดยา" จาก Rich Menu
     if "ลงนัด" in user_message:
         buttons_template = ButtonsTemplate(
             title="ลงทะเบียนวันนัดหมาย",
@@ -75,13 +76,13 @@ def handle_message(event):
         line_bot_api.reply_message(event.reply_token, TemplateSendMessage(alt_text="เลือกนัดหมาย", template=buttons_template))
         return
 
-    # เช็ค FAQ
+    # ตอบคำถามทั่วไป
     for key in faq:
         if key in user_message:
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=faq[key]))
             return
 
-    # ถ้ามีเว้นวรรค ให้ถือว่าเป็นการลงทะเบียนชื่อ-นามสกุล
+    # ถ้าพิมพ์ ชื่อ นามสกุล (มีเว้นวรรค) ให้จดลง Sheets
     if " " in user_message and len(user_message) > 5:
         try:
             now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
@@ -90,24 +91,26 @@ def handle_message(event):
         except:
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text="ขออภัยค่ะ ระบบจดชื่อขัดข้องชั่วคราว"))
 
-# --- 4. ส่วนรับค่าจากปฏิทิน (จดวันนัด + แจ้งเตือนความปลอดภัย) ---
+# 5. ส่วนจัดการเมื่อเลือกวันที่จากปฏิทิน (Postback)
 @handler.add(PostbackEvent)
 def handle_postback(event):
     user_id = event.source.user_id
-    selected_date = event.postback.params.get('date')
-    data = event.postback.data # action=set_nood&no=X
+    selected_date = event.postback.params.get('date') # วันที่จากปฏิทิน
+    data = event.postback.data # ข้อมูลว่านัดที่เท่าไหร่
     
     if "action=set_nood" in data:
         nood_no = data.split("no=")[1]
-        col_map = {"1": 4, "2": 5, "3": 6, "4": 7}
+        col_map = {"1": 4, "2": 5, "3": 6, "4": 7} # คอลัมน์ D, E, F, G
         col_num = col_map[nood_no]
 
         try:
+            # ค้นหาคนไข้จาก LINE ID
             cell = sheet.find(user_id, in_column=2)
             if cell:
+                # อัปเดตวันที่ลงช่องนัด
                 sheet.update_cell(cell.row, col_num, selected_date)
                 
-                # ข้อความแจ้งเตือนที่คุณพยาบาลเน้นย้ำ
+                # แจ้งเตือนความปลอดภัยที่คุณพยาบาลเน้นย้ำ
                 safety_msg = (
                     f"✅ บันทึกนัดเรียบร้อยค่ะ วันที่ {selected_date}\n\n"
                     f"⚠️ สำคัญมาก:\n"
@@ -116,6 +119,6 @@ def handle_postback(event):
                 )
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text=safety_msg))
             else:
-                line_bot_api.reply_message(event.reply_token, TextSendMessage(text="⚠️ ไม่พบชื่อในระบบ รบกวนแจ้งชื่อ-นามสกุลก่อนค่ะ"))
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text="⚠️ ไม่พบชื่อในระบบ รบกวนแจ้งชื่อ-นามสกุลเพื่อลงทะเบียนก่อนนะคะ"))
         except Exception as e:
             print(f"Error: {e}")
