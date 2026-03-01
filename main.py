@@ -34,7 +34,7 @@ def connect_sheets():
             creds = Credentials.from_service_account_info(service_account_info, scopes=scopes)
             client = gspread.authorize(creds)
             # เชื่อมต่อกับ Sheet1 (ตรวจสอบรหัส ID ให้ถูกต้องนะคะ)
-            sheet = client.open_by_key("1joOjhQSn4sGtRkF9-_9dwwEvmtC1On24JEyrJHK6mXs").sheet1
+            sheet = client.open_by_key("1joOjhQSn4sGtRKF9-_9dwwEvmtC1On24JEyrJHK6mXs").sheet1
             print("✅ Connected to Google Sheets successfully!")
     except Exception as e:
         print(f"❌ Error connecting to Google Sheets: {e}")
