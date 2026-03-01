@@ -102,7 +102,7 @@ def handle_message(event):
         else:
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text="❌ บอทหาไฟล์สมุดจดไม่เจอค่ะ"))
 
-# 5. ส่วนรับค่าจากปฏิทิน (จดวันนัด + ตอบยืนยัน)
+# 5. ส่วนรับค่าจากปฏิทิน (ปรับปรุงข้อความนัดติดตามอาการ)
 @handler.add(PostbackEvent)
 def handle_postback(event):
     user_id = event.source.user_id
@@ -114,12 +114,16 @@ def handle_postback(event):
         col_map = {"1": 4, "2": 5, "3": 6, "4": 7}
         col_num = col_map.get(nood_no)
 
+        # ส่วนที่ปรับใหม่: ถ้าเป็นเลข 4 ให้ใช้คำว่า "ติดตามอาการ"
+        appointment_name = f"เข็มที่ {nood_no}" if nood_no != "4" else "ติดตามอาการ"
+
         try:
             cell = sheet.find(user_id, in_column=2)
             if cell:
                 sheet.update_cell(cell.row, col_num, selected_date)
+                
                 safety_msg = (
-                    f"✅ บันทึกนัดเข็มที่ {nood_no} เรียบร้อยค่ะ วันที่ {selected_date}\n\n"
+                    f"✅ บันทึกนัด {appointment_name} เรียบร้อยค่ะ วันที่ {selected_date}\n\n"
                     f"⚠️ สำคัญมาก:\n"
                     f"ห้ามขับรถมาเองในวันนัดนะคะ เนื่องจากต้องปิดตาข้างที่ฉีดยา "
                     f"และบางรายอาจต้องขยายม่านตา จะทำให้ตามัวชั่วคราวค่ะ"
