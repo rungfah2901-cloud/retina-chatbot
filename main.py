@@ -29,7 +29,8 @@ try:
         creds = Credentials.from_service_account_info(service_account_info, scopes=scopes)
         client = gspread.authorize(creds)
         # ใช้ ID ไฟล์ของคุณพยาบาล
-        sheet = client.open_by_key("1joOjhQSn4sGtRkF9-_9dwwEvmtC1On24JEyrJHK6mXs").sheet1
+        # แก้ไขจาก .sheet1 เป็นการระบุชื่อแผ่นงานภาษาไทย "ชีต1" ค่ะ
+        sheet = client.open_by_key("1joOjhQSn4sGtRkF9-_9dwwEvmtC1On24JEyrJHK6mXs").worksheet("ชีต1")
 except Exception as e:
     print(f"❌ เชื่อมต่อ Sheets ไม่สำเร็จ: {e}")
 
