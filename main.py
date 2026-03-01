@@ -104,31 +104,46 @@ def handle_message(event):
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text="ขออภัยค่ะ ระบบจดชื่อขัดข้องชั่วคราว"))
 
 # 5. ส่วนรับค่าจากปฏิทิน (จดวันนัด + เตือนความปลอดภัยที่เน้นย้ำ)
-@handler.add(PostbackEvent)
-def handle_postback(event):
+@handler.add(MessageEvent, message=TextMessage)
+def handle_message(event):
     user_id = event.source.user_id
-    selected_date = event.postback.params.get('date')
-    data = event.postback.data
-    
-    if "action=set_nood" in data and sheet:
-        nood_no = data.split("no=")[1]
-        col_map = {"1": 4, "2": 5, "3": 6, "4": 7}
-        col_num = col_map.get(nood_no)
+    user_message = event.message.text.strip()
 
-        try:
-            cell = sheet.find(user_id, in_column=2)
-            if cell:
-                sheet.update_cell(cell.row, col_num, selected_date)
-                
-                # ข้อความแจ้งเตือนสำคัญ (Patient Safety)
-                safety_msg = (
-                    f"✅ บันทึกนัดเข็มที่ {nood_no} เรียบร้อยค่ะ วันที่ {selected_date}\n\n"
-                    f"⚠️ สำคัญมาก:\n"
-                    f"ห้ามขับรถมาเองในวันนัดนะคะ เนื่องจากต้องปิดตาข้างที่ฉีดยา "
-                    f"และบางรายอาจต้องขยายม่านตา จะทำให้ตามัวชั่วคราวค่ะ"
-                )
-                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=safety_msg))
-            else:
-                line_bot_api.reply_message(event.reply_token, TextSendMessage(text="⚠️ ไม่พบชื่อในระบบ รบกวนแจ้งชื่อ-นามสกุลก่อนนะคะ"))
-        except Exception as e:
-            print(f"Error: {e}")
+    # 1. เช็คปุ่มนัด
+    if "ลงนัด" in user_message:
+        buttons_template = ButtonsTemplate(
+            title="ลงทะเบียนวันนัดหมาย",
+            text="กรุณาเลือกรายการนัดที่ต้องการค่ะ",
+            actions=[
+                DatetimePickerAction(label="เข็มที่ 1", data="action=set_nood&no=1", mode="date"),
+                DatetimePickerAction(label="เข็มที่ 2", data="action=set_nood&no=2", mode="date"),
+                DatetimePickerAction(label="เข็มที่ 3", data="action=set_nood&no=3", mode="date"),
+                DatetimePickerAction(label="ติดตามอาการ", data="action=set_nood&no=4", mode="date"),
+            ]
+        )
+        line_bot_api.reply_message(event.reply_token, TemplateSendMessage(alt_text="เลือกนัดหมาย", template=buttons_template))
+        return
+
+    # 2. เช็ค FAQ
+    for key, value in faq.items():
+        if key in user_message:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=value))
+            return
+
+    # 3. ส่วนจดชื่อ (ปรับปรุงใหม่ให้บอทไม่เงียบ)
+    if " " in user_message:
+        if sheet is None:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="❌ บอทหาไฟล์สมุดจดไม่เจอค่ะ เช็คการแชร์สิทธิ์หรือ ID ไฟล์นะคะ"))
+        else:
+            try:
+                now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+                sheet.append_row([now, user_id, user_message])
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"พยาบาลจดชื่อ 'คุณ {user_message}' เรียบร้อยแล้วค่ะ 😊"))
+            except Exception as e:
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"❌ จดชื่อไม่สำเร็จเพราะ: {str(e)}"))
+    else:
+        # ถ้าพิมพ์มาแล้วไม่มีเว้นวรรค ให้บอททักท้วงแทนที่จะเงียบค่ะ
+        line_bot_api.reply_message(
+            event.reply_token, 
+            TextSendMessage(text="พยาบาลได้รับข้อความแล้วค่ะ แต่ถ้าจะลงทะเบียนชื่อ รบกวนพิมพ์ 'ชื่อ นามสกุล' แบบมีเว้นวรรคตรงกลางด้วยนะคะ")
+        )
