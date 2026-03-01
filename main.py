@@ -25,7 +25,8 @@ try:
         creds = Credentials.from_service_account_info(service_account_info, scopes=scopes)
         client = gspread.authorize(creds)
         # ตรวจสอบว่าชื่อไฟล์ในเครื่องหมายคำพูด ตรงกับชื่อใน Google Sheets ของคุณพยาบาลเป๊ะๆ
-        sheet = client.open("รายชื่อคนไข้ Retina").sheet1 
+        # วางรหัสที่ก๊อปมาในเครื่องหมายคำพูดแทนชื่อไฟล์ค่ะ
+        sheet = client.open_by_key("1joOjhQSn4sGtRKF9-_9dwwEvmtC1On24JEyrJHK6mXs").sheet1
     else:
         print("❌ ไม่พบตัวแปร GOOGLE_SERVICE_ACCOUNT_JSON ในระบบ")
 except Exception as e:
