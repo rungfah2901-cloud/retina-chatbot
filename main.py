@@ -3,6 +3,9 @@ from linebot import LineBotApi, WebhookHandler
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 from dotenv import load_dotenv
 import os
+import gspread
+from google.oauth2.service_account import Credentials
+from datetime import datetime
 
 load_dotenv()
 
@@ -10,6 +13,15 @@ app = FastAPI()
 line_bot_api = LineBotApi(os.getenv("LINE_CHANNEL_ACCESS_TOKEN"))
 handler = WebhookHandler(os.getenv("LINE_CHANNEL_SECRET"))
 
+# --- ส่วนการตั้งค่า Google Sheets ---
+# ตรวจสอบว่าไฟล์กุญแจชื่อ google_key.json อยู่ในโฟลเดอร์เดียวกับ main.py นะคะ
+scopes = ["https://www.googleapis.com/auth/spreadsheets"]
+creds = Credentials.from_service_account_file("google_key.json", scopes=scopes)
+client = gspread.authorize(creds)
+# ชื่อไฟล์ต้องตรงกับใน Google Sheets ของคุณพยาบาลเป๊ะๆ นะคะ
+sheet = client.open("รายชื่อคนไข้ Retina").sheet1 
+
+# FAQ ชุดล่าสุดที่คุณพยาบาลแก้ไข
 faq = {
     "ฉีดยา": "การฉีดยาเข้าน้ำวุ้นตา ใช้เวลาประมาณ 30-60 นาทีค่ะ ไม่เจ็บมากเพราะมีการหยอดยาชาก่อนค่ะ",
     "เตรียมตัว": "ก่อนฉีดยา: อาบน้ำสระผมให้เรียบร้อย ไม่แต่งหน้า ไม่ใส่คอนแทคเลนส์ และพาญาติมาด้วยได้ค่ะ",
@@ -24,11 +36,11 @@ def get_faq_answer(message):
     for keyword, answer in faq.items():
         if keyword in message:
             return answer
-    return "ขอบคุณที่สอบถามค่ะ 😊 พิมพ์คำเหล่านี้ได้เลยค่ะ:\n\n💉 ฉีดยา\n📋 เตรียมตัว\n🏥 หลังฉีด\n📅 นัด\n👁 จอตาเสื่อม\n🩺 เบาหวาน\n🚨 ฉุกเฉิน"
+    return None
 
 @app.get("/")
 def read_root():
-    return {"status": "Retina Chatbot Running!"}
+    return {"status": "Retina Chatbot with Google Sheets is Running!"}
 
 @app.post("/webhook")
 async def webhook(request: Request):
@@ -42,9 +54,26 @@ async def webhook(request: Request):
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
+    user_id = event.source.user_id
     user_message = event.message.text
+    
+    # 1. เช็คก่อนว่าเป็นคำถามใน FAQ หรือไม่
     reply = get_faq_answer(user_message)
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=reply)
-    )
+    
+    if reply:
+        # ถ้าเจอคำตอบใน FAQ ให้ตอบทันที
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply))
+    elif " " in user_message and len(user_message) > 5:
+        # 2. ถ้าไม่ใช่อาการ/คำถาม แต่มี 'เว้นวรรค' ให้ถือว่าเป็นการแจ้งชื่อ-นามสกุล
+        try:
+            now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            sheet.append_row([now, user_id, user_message])
+            confirm_text = f"พยาบาลจดชื่อ 'คุณ {user_message}' ลงในระบบเรียบร้อยแล้วค่ะ 😊"
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=confirm_text))
+        except Exception as e:
+            # กรณีเชื่อมต่อ Sheets ไม่ได้
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="ขออภัยค่ะ ระบบจดชื่อขัดข้องชั่วคราว แต่พยาบาลรับทราบแล้วค่ะ"))
+    else:
+        # 3. ถ้าไม่เข้าเงื่อนไขไหนเลย ให้ส่งเมนูแนะนำ
+        default_text = "สวัสดีค่ะ รบกวนแจ้ง 'ชื่อ นามสกุล' เพื่อลงทะเบียน หรือพิมพ์สิ่งที่ต้องการทราบ เช่น ฉีดยา, เตรียมตัว, นัด ค่ะ"
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=default_text))

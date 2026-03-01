@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "driven-strength-488914-f3",
+  "private_key_id": "85892a4813935fa7e26d835692ce0e77c9b01d99",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC92/8VjwGSczUF\nVjw4JKFRKC/lz0mycEbKVGOjapzrt5pT5g8pWRY8XjJ1JHPcDgpRok1rc9kP+n6M\neeaJeK0mDy8Ta3jhx5JcIPSepleERJrcuUud/rTD6bL7t2niGnOkCvls6YfnskvG\nx2NfK7Y7WvzWsPZH9BRTOWpnOwLfjLhsB0qkYXTkd3n0E99nrdzJmHYmopdivYX0\nS9WLI63EpX1OAt7QfhEQkTcG7FxXE9V0MyESMzjlZNteUPBfMupTc6QuHQHoHg6+\n/MXLWgc1hHSDLJWr6tVD44qFZXnNzmsqnxbKNOhsGJGOWV6gCyTmC293lbFc5B+d\nSdRVZNOtAgMBAAECggEABPwgutwIymO41jsti5auDQwpyTYsy+WV6s5V2RoiNy/h\nnwKXxVDdoLxsad8/3BOtJxxpGNOT/iFDuHsRKhFtNK9TX8+V2n+7pQfjVp52BqSX\nDy35Jdytug6Jwu8EmkByHbITf03YqzdnEIDkjJwlDuB5IP3tUpqZ17qyDKQauDVD\nDeuQriBbjFS6Cn+uD6uU0+uRadHMuS76uUo/eARak0KOKelr//151ZDN+aIQZsdr\n1vcIMTs0YVvq20Z96fWcmZnwMeD2+s/tvCey0ih/RjjoDPwrhBB4PahYeSFmljM+\nZkIquAypHGPN7MIz6T7WqteZaZWCQDfGxQ5oEq5AwQKBgQDpQNHg1cwUT5ljyPQs\nJdvOZTDDNpNnQ/QtWmPtaMlnNMWb/SjIQjGCRSoNySpXkh2A4P2iz68nQu4SSp6n\nmHjsgjnjqKPoWl0gp8OUlZizrvKs6ES5XXhBUBGQNirP0KJXPsy7XsDVvOmEeUQK\nSbvAuXrGov8hoFiMlWs/TdXb/QKBgQDQX9jDsSRABlefj5a45qcy1NIGFooJx/0H\nCDzZ1WX7uL9BrI8pMqAGkuaaOWUilx+OLb3weu2Ajvj+4jrabI3e53DJaU863r5c\nqTFPifp/ejcn9sYJCB8XPQlotwz34Q6+XUY8Os+m/BIe33ZxpJpt+hyeiaNm6Awe\nPuPgVuRtcQKBgQCMkDlqaqzPWKCxV3p92Fq76JMYMR1nT7YoVp59hXZJsa2cMVWQ\nSQOY46FSKXZQy4boEa4HnWyKFnVtpHYzvVix/lBwd0I/VaVldnQQaI5bSgSIWnh/\n1GoRwfSzmVD3Z11NglTSXWmL5Io9AO8V3BU/MQdiCPwDAaQbJDg7L+a+6QKBgHtn\n2DuFRH+6gdhYtJ3K1Eixa7T5UkUasMqiYU9tJ5ndvz9Iz/xJJCbghzvdM/05XRHa\nGzw5wUC669If71T+p0LU9KIEAU1PL5Q3C6IciENJATNk3cHpkmgz2MewaTjAi/fH\ny9nNxr8RWDX6h+4j2uW5E4v83c4LLWoYOuLY8y2xAoGAX8FoG/lsrWRl4SgMyvh4\nM7NuHEcDyH+QQdwH1QalAUSQ06NmBCXyiYN3oAnzo39iVHnjydpDb23C0hh6n9R2\nCBcA+LvvMA9lw3NxPfGkspWDjMcnzvVcwk2FEGUh9qbDyxntPIW4d7YTRbfP2l6e\nzpzXlEYToavk1nhhW99CYiM=\n-----END PRIVATE KEY-----\n",
+  "client_email": "id-nurse-bot-assistant@driven-strength-488914-f3.iam.gserviceaccount.com",
+  "client_id": "104517328656323188859",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/id-nurse-bot-assistant%40driven-strength-488914-f3.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
