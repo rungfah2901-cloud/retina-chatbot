@@ -25,6 +25,7 @@ def get_faq_answer(message):
         if keyword in message:
             return answer
     return "ขอบคุณที่สอบถามค่ะ 😊 พิมพ์คำเหล่านี้ได้เลยค่ะ:\n\n💉 ฉีดยา\n📋 เตรียมตัว\n🏥 หลังฉีด\n📅 นัด\n👁 จอตาเสื่อม\n🩺 เบาหวาน\n🚨 ฉุกเฉิน"
+
 @app.get("/")
 def read_root():
     return {"status": "Retina Chatbot Running!"}
@@ -46,4 +47,4 @@ def handle_message(event):
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=reply)
-    ]
+    )
